@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ollama Chat</title>
+    <title>Ollama Chat Troubleshooter</title>
     <style>
         * {
             margin: 0;
@@ -162,6 +162,52 @@
             color: #6c757d;
         }
 
+        .error-box {
+            background-color: #ffebee;
+            border-left: 5px solid #f44336;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .success-box {
+            background-color: #e8f5e9;
+            border-left: 5px solid #4caf50;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .test-button {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .test-button:hover {
+            background-color: #f57c00;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         @media (max-width: 480px) {
             .container {
                 height: 100%;
@@ -177,20 +223,35 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Ollama Chat</h1>
-            <p>Connect to your local AI model</p>
+            <h1>Ollama Chat Troubleshooter</h1>
+            <p>Test your Ollama connection</p>
         </div>
         
         <div class="chat-container" id="chatContainer">
             <div class="message ai-message">
                 <div class="message-content">
-                    Hello! I'm your AI assistant. What would you like to know?
+                    Welcome to the Ollama Chat Troubleshooter! I'll help you diagnose and fix your Ollama connection issues.
+                </div>
+                <div class="message-info">System</div>
+            </div>
+            <div class="message ai-message">
+                <div class="message-content">
+                    I see you can access the Ollama API directly in your browser. Let's test the connection from the web app.
                 </div>
                 <div class="message-info">System</div>
             </div>
         </div>
         
         <div class="input-container">
+            <div class="input-group">
+                <input type="text" id="ollamaIp" placeholder="Ollama IP Address (e.g., 192.168.1.100)" value="192.168.1.100">
+                <button class="test-button" id="testConnection">
+                    Test Connection
+                </button>
+            </div>
+            <div class="input-group">
+                <input type="text" id="ollamaModel" placeholder="Model Name (e.g., llama2)" value="llama2">
+            </div>
             <div class="input-box">
                 <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off">
                 <button id="sendButton">
@@ -198,6 +259,15 @@
                         <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
                     </svg>
                 </button>
+            </div>
+        </div>
+        
+        <div class="chat-container" id="debugContainer" style="display: none;">
+            <div class="message ai-message">
+                <div class="message-content">
+                    Here's the debug information from your browser:
+                </div>
+                <div class="message-info">System</div>
             </div>
         </div>
         
@@ -209,12 +279,16 @@
     <script>
         // DOM elements
         const chatContainer = document.getElementById('chatContainer');
+        const debugContainer = document.getElementById('debugContainer');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
+        const ollamaIpInput = document.getElementById('ollamaIp');
+        const ollamaModelInput = document.getElementById('ollamaModel');
+        const testConnectionButton = document.getElementById('testConnection');
 
         // Ollama configuration
-        const OLLAMA_URL = 'http://192.168.178.20:11434/api/chat'; // Replace with your PC's IP address
-        const MODEL_NAME = 'deepseek-r1:8b'; // Replace with your model name
+        let OLLAMA_URL = 'http://192.168.1.100:11434/api/tags'; // Replace with your PC's IP address
+        let MODEL_NAME = 'llama2'; // Replace with your model name
 
         // Add a message to the chat
         function addMessage(role, content) {
@@ -237,10 +311,91 @@
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
 
+        // Add debug message to the debug container
+        function addDebugMessage(content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message';
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = content;
+            
+            const messageInfo = document.createElement('div');
+            messageInfo.className = 'message-info';
+            messageInfo.textContent = 'Debug';
+            
+            messageDiv.appendChild(messageContent);
+            messageDiv.appendChild(messageInfo);
+            debugContainer.appendChild(messageDiv);
+            
+            // Scroll to the bottom
+            debugContainer.scrollTop = debugContainer.scrollHeight;
+        }
+
+        // Send a test request to Ollama API
+        async function testOllamaConnection() {
+            try {
+                // First test: ping the server
+                const pingResponse = await fetch(OLLAMA_URL, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+                
+                const pingStatus = pingResponse.ok ? 'success' : 'failure';
+                
+                // Second test: get available models
+                const tagsResponse = await fetch(`${OLLAMA_URL.replace('/tags', '/api/tags')}`, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+                
+                const tagsStatus = tagsResponse.ok ? 'success' : 'failure';
+                
+                // Third test: send a chat request
+                try {
+                    const chatResponse = await fetch(`${OLLAMA_URL.replace('/tags', '/api/chat')}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            model: MODEL_NAME,
+                            messages: [
+                                { role: "user", content: "Hello, Ollama!" }
+                            ],
+                            stream: false
+                        }),
+                        cache: 'no-cache'
+                    });
+                    
+                    const chatStatus = chatResponse.ok ? 'success' : 'failure';
+                    
+                    // Display results
+                    addDebugMessage(`Ping: ${pingStatus}`);
+                    addDebugMessage(`Tags API: ${tagsStatus}`);
+                    addDebugMessage(`Chat API: ${chatStatus}`);
+                    
+                    // Show debug container
+                    debugContainer.style.display = 'block';
+                    
+                    // Add a message to the main chat
+                    if (pingStatus === 'success') {
+                        addMessage('ai', 'Connection test successful! All endpoints are responding correctly.');
+                    } else {
+                        addMessage('ai', 'Connection test failed. Some endpoints are not responding correctly.');
+                    }
+                } catch (error) {
+                    addDebugMessage(`Chat API test failed: ${error.message}`);
+                }
+            } catch (error) {
+                addDebugMessage(`Connection test failed: ${error.message}`);
+            }
+        }
+
         // Send message to Ollama API
         async function sendMessageToOllama(message) {
             try {
-                const response = await fetch(`${OLLAMA_URL}?model=${MODEL_NAME}`, {
+                const response = await fetch(`${OLLAMA_URL.replace('/tags', '/api/chat')}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -296,19 +451,49 @@
             }
         });
 
-        // Initialize the app
+        testConnectionButton.addEventListener('click', () => {
+            OLLAMA_URL = `http://${ollamaIpInput.value}:11434/api/tags`;
+            MODEL_NAME = ollamaModelInput.value;
+            testOllamaConnection();
+        });
+
+        // Start the app
         async function initApp() {
+            // Test the connection to Ollama
+            addMessage('ai', 'Testing connection to Ollama API...');
+            
             try {
-                // Test the connection to Ollama
-                const testResponse = await sendMessageToOllama("Hello, Ollama! This is a test message.");
-                console.log("Connection test successful:", testResponse);
+                // First test: ping the server
+                const pingResponse = await fetch(OLLAMA_URL, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+                
+                const pingStatus = pingResponse.ok ? 'success' : 'failure';
+                
+                // Second test: get available models
+                const tagsResponse = await fetch(`${OLLAMA_URL.replace('/tags', '/api/tags')}`, {
+                    method: 'GET',
+                    cache: 'no-cache'
+                });
+                
+                const tagsStatus = tagsResponse.ok ? 'success' : 'failure';
+                
+                // Display results
+                addMessage('ai', `Ping test: ${pingStatus ? 'success' : 'failed'}`);
+                addMessage('ai', `Models API test: ${tagsStatus ? 'success' : 'failed'}`);
+                
+                // Add a message to the debug container
+                debugContainer.style.display = 'block';
+                addDebugMessage(`Ping test: ${pingStatus ? 'success' : 'failed'}`);
+                addDebugMessage(`Models API test: ${tagsStatus ? 'success' : 'failed'}`);
+                
             } catch (error) {
-                console.error("Connection test failed:", error);
-                addMessage('ai', "Sorry, I couldn't connect to the Ollama server. Please check that the Ollama server is running and accessible at " + OLLAMA_URL);
+                addMessage('ai', `Connection test failed: ${error.message}`);
             }
         }
 
-        // Start the app
+        // Initialize the app
         initApp();
     </script>
 </body>
