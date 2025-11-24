@@ -3,196 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ollama Connection Troubleshooter</title>
+    <title>Ollama Chat</title>
     <style>
-        body {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f7fa;
         }
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .instructions {
-            background-color: #f8f9fa;
-            border-left: 4px solid #3498db;
-            padding: 15px;
-            margin-bottom: 25px;
-            border-radius: 4px;
-        }
-        .input-group {
-            margin-bottom: 20px;
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
             display: flex;
+            justify-content: center;
             align-items: center;
+            padding: 20px;
         }
-        input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
         }
-        button {
+
+        .header {
             background-color: #3498db;
             color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
-            transition: background-color 0.3s;
+            padding: 20px;
+            text-align: center;
         }
-        button:hover {
-            background-color: #2980b9;
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
         }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
         .chat-container {
-            border: 1px solid #eee;
-            border-radius: 4px;
-            padding: 15px;
-            margin-bottom: 20px;
-            background-color: #f8f9fa;
-            min-height: 200px;
-            max-height: 400px;
+            height: 400px;
+            padding: 20px;
             overflow-y: auto;
+            background-color: #f5f7fa;
         }
+
         .message {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             display: flex;
             flex-direction: column;
         }
+
         .message-content {
-            padding: 10px;
-            border-radius: 4px;
-            margin-bottom: 5px;
+            padding: 12px 16px;
+            border-radius: 18px;
             max-width: 80%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
         }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            align-self: flex-end;
+        }
+
         .user-message .message-content {
             background-color: #3498db;
             color: white;
-            align-self: flex-end;
-            border-bottom-right-radius: 0;
+            border-bottom-right-radius: 5px;
         }
-        .ai-message .message-content {
-            background-color: #f1f1f1;
+
+        .ai-message {
             align-self: flex-start;
-            border-bottom-left-radius: 0;
         }
+
+        .ai-message .message-content {
+            background-color: #eef2f7;
+            color: #333;
+            border-bottom-left-radius: 5px;
+        }
+
         .message-info {
             font-size: 12px;
-            color: #7f8c8d;
+            color: #777;
+            margin-top: 5px;
         }
-        .hidden {
-            display: none;
+
+        .user-message .message-info {
+            text-align: right;
         }
-        .error {
-            color: #e74c3c;
-            font-weight: bold;
+
+        .input-container {
+            padding: 20px;
+            border-top: 1px solid #eee;
         }
-        .success {
-            color: #27ae60;
+
+        .input-box {
+            display: flex;
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            padding: 8px 15px;
+            background-color: white;
         }
-        .debug-info {
-            font-family: monospace;
-            background-color: #f8f9fa;
+
+        .input-box input {
+            flex: 1;
+            border: none;
+            outline: none;
             padding: 10px;
-            border-radius: 4px;
-            margin-top: 10px;
+            font-size: 16px;
+            background: transparent;
         }
-        .hidden {
-            display: none;
+
+        .input-box button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-left: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: background-color 0.3s;
         }
-        .test-area {
-            margin-top: 20px;
+
+        .input-box button:hover {
+            background-color: #2980b9;
+        }
+
+        .input-box button:active {
+            background-color: #1c6ea4;
+        }
+
+        .input-box button svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+
+        .footer {
             padding: 15px;
+            text-align: center;
             background-color: #f8f9fa;
-            border-radius: 4px;
+            font-size: 14px;
+            color: #6c757d;
         }
-        .test-result {
-            margin-top: 10px;
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .failed {
-            background-color: #ffecec;
-            border-left: 4px solid #e74c3c;
-        }
-        .passed {
-            background-color: #d1f7d1;
-            border-left: 4px solid #27ae60;
+
+        @media (max-width: 480px) {
+            .container {
+                height: 100%;
+                border-radius: 0;
+            }
+            
+            .chat-container {
+                height: 350px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Ollama Connection Troubleshooter</h1>
-        
-        <div class="instructions">
-            <p><strong>Instructions:</strong> Follow these steps to troubleshoot your Ollama connection:</p>
-            <ol>
-                <li>Enter your Ollama server IP address in the first input field</li>
-                <li>Enter your model name in the second input field</li>
-                <li>Click "Test Connection" to check if the server is reachable</li>
-                <li>If the test fails, check your IP address and try again</li>
-                <li>If still having issues, try the other diagnostic tests</li>
-            </ol>
-        </div>
-        
-        <div class="test-area">
-            <div class="input-group">
-                <input type="text" id="ollamaIp" placeholder="Ollama IP Address (e.g., 192.168.1.100)" value="192.168.1.100">
-                <button id="testConnection">Test Connection</button>
-                <button id="testPing">Test Ping</button>
-                <button id="testTags">Test Tags API</button>
-                <button id="testChat">Test Chat API</button>
-            </div>
-            
-            <div id="connectionTestResult" class="test-result hidden"></div>
+        <div class="header">
+            <h1>Ollama Chat</h1>
+            <p>Connect to your local AI model</p>
         </div>
         
         <div class="chat-container" id="chatContainer">
             <div class="message ai-message">
-                <div class="message-content">Welcome to the Ollama Connection Troubleshooter! I'll help you diagnose and fix your Ollama connection issues.</div>
+                <div class="message-content">
+                    Hello! I'm your AI assistant. What would you like to know?
+                </div>
                 <div class="message-info">System</div>
             </div>
         </div>
         
-        <div id="debugContainer" class="hidden">
-            <h2>Debug Information</h2>
-            <div id="debugOutput" class="debug-info"></div>
+        <div class="input-container">
+            <div class="input-box">
+                <input type="text" id="userInput" placeholder="Type your message..." autocomplete="off">
+                <button id="sendButton">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Hosted on GitHub Pages • Connect to your local Ollama server</p>
         </div>
     </div>
 
     <script>
         // DOM elements
         const chatContainer = document.getElementById('chatContainer');
-        const debugContainer = document.getElementById('debugContainer');
         const userInput = document.getElementById('userInput');
         const sendButton = document.getElementById('sendButton');
-        const ollamaIpInput = document.getElementById('ollamaIp');
-        const testConnectionButton = document.getElementById('testConnection');
-        const testPingButton = document.getElementById('testPing');
-        const testTagsButton = document.getElementById('testTags');
-        const testChatButton = document.getElementById('testChat');
-        const connectionTestResult = document.getElementById('connectionTestResult');
-        const debugOutput = document.getElementById('debugOutput');
-        
+
         // Ollama configuration
-        let OLLAMA_URL = 'http://192.168.1.100:11434/api/tags'; // Default to a common IP
-        let MODEL_NAME = 'llama2'; // Default model
-        
+        const OLLAMA_URL = 'http://ip_address:11434/api/chat'; // Replace with your PC's IP address
+        const MODEL_NAME = 'model_name'; // Replace with your model name
+
         // Add a message to the chat
         function addMessage(role, content) {
             const messageDiv = document.createElement('div');
@@ -204,7 +227,7 @@
             
             const messageInfo = document.createElement('div');
             messageInfo.className = 'message-info';
-            messageInfo.textContent = role === 'user' ? 'You' : 'System';
+            messageInfo.textContent = role === 'user' ? 'You' : 'Ollama';
             
             messageDiv.appendChild(messageContent);
             messageDiv.appendChild(messageInfo);
@@ -213,100 +236,11 @@
             // Scroll to the bottom
             chatContainer.scrollTop = chatContainer.scrollHeight;
         }
-        
-        // Add debug message to the debug container
-        function addDebugMessage(content) {
-            debugOutput.innerHTML += `<div>${content}</div>`;
-            debugContainer.style.display = 'block';
-            debugOutput.scrollTop = debugOutput.scrollHeight;
-        }
-        
-        // Send a test request to Ollama API
-        async function testOllamaConnection() {
-            try {
-                // First test: ping the server
-                addMessage('ai', 'Testing connection to Ollama API...');
-                addDebugMessage('Starting connection tests...');
-                
-                // Test ping
-                addDebugMessage('Testing ping...');
-                try {
-                    const pingResponse = await fetch(`http://${ollamaIpInput.value}:11434/ping`, {
-                        method: 'GET',
-                        cache: 'no-cache'
-                    });
-                    const pingStatus = pingResponse.ok ? 'success' : 'failure';
-                    addDebugMessage(`Ping: ${pingStatus ? 'success' : 'failure'}`);
-                } catch (error) {
-                    addDebugMessage(`Ping test failed: ${error.message}`);
-                }
-                
-                // Test tags API
-                addDebugMessage('Testing tags API...');
-                try {
-                    const tagsResponse = await fetch(`http://${ollamaIpInput.value}:11434/api/tags`, {
-                        method: 'GET',
-                        cache: 'no-cache'
-                    });
-                    const tagsStatus = tagsResponse.ok ? 'success' : 'failure';
-                    addDebugMessage(`Tags API: ${tagsStatus ? 'success' : 'failure'}`);
-                } catch (error) {
-                    addDebugMessage(`Tags API test failed: ${error.message}`);
-                }
-                
-                // Test chat API
-                addDebugMessage('Testing chat API...');
-                try {
-                    const chatResponse = await fetch(`http://${ollamaIpInput.value}:11434/api/chat`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            model: MODEL_NAME,
-                            messages: [
-                                { role: "user", content: "Hello, Ollama!" }
-                            ],
-                            stream: false
-                        }),
-                        cache: 'no-cache'
-                    });
-                    const chatStatus = chatResponse.ok ? 'success' : 'failure';
-                    addDebugMessage(`Chat API: ${chatStatus ? 'success' : 'failure'}`);
-                } catch (error) {
-                    addDebug = `Chat API test failed: ${error.message}`;
-                }
-                
-                // Display results
-                connectionTestResult.className = 'test-result';
-                connectionTestResult.innerHTML = '<strong>Connection Test Results:</strong>';
-                
-                // Add a message to the main chat
-                const pingStatus = true; // This is just a placeholder
-                const tagsStatus = true; // This is just a placeholder
-                const chatStatus = true; // This is just a placeholder
-                
-                if (pingStatus && tagsStatus && chatStatus) {
-                    connectionTestResult.innerHTML += '<div class="passed">All tests passed! Your Ollama server is responding correctly.</div>';
-                    addMessage('ai', 'Connection test successful! All endpoints are responding correctly.');
-                } else {
-                    connectionTestResult.innerHTML += '<div class="failed">Some tests failed. Please check your Ollama server configuration.</div>';
-                    addMessage('ai', 'Connection test partially successful. Some endpoints may not be responding correctly.');
-                }
-                
-                // Show the connection test result
-                connectionTestResult.classList.remove('hidden');
-                
-            } catch (error) {
-                addDebugMessage(`Connection test failed: ${error.message}`);
-                addMessage('ai', 'Connection test failed. Please check your Ollama server configuration.');
-            }
-        }
-        
+
         // Send message to Ollama API
         async function sendMessageToOllama(message) {
             try {
-                const response = await fetch(`${OLLAMA_URL.replace('/tags', '/api/chat')}`, {
+                const response = await fetch(`${OLLAMA_URL}?model=${MODEL_NAME}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -331,7 +265,7 @@
                 return "Sorry, I encountered an error. Please check your Ollama connection and try again.";
             }
         }
-        
+
         // Handle sending a message
         async function handleSendMessage() {
             const message = userInput.value.trim();
@@ -352,7 +286,7 @@
                 addMessage('ai', "Sorry, I couldn't process your request. " + error.message);
             }
         }
-        
+
         // Event listeners
         sendButton.addEventListener('click', handleSendMessage);
         
@@ -361,33 +295,20 @@
                 handleSendMessage();
             }
         });
-        
-        testConnectionButton.addEventListener('click', () => {
-            testOllamaConnection();
-        });
-        
-        testPingButton.addEventListener('click', () => {
-            addDebugMessage('Testing ping...');
-            // Ping test implementation would go here
-        });
-        
-        testTagsButton.addEventListener('click', () => {
-            addDebugMessage('Testing tags API...');
-            // Tags API test implementation would go here
-        });
-        
-        testChatButton.addEventListener('click', () => {
-            addDebugMessage('Testing chat API...');
-            // Chat API test implementation would go here
-        });
-        
-        // Start the app
-        async function initApp() {
-            // Test the connection to Ollama
-            addMessage('ai', 'Welcome to the Ollama Connection Troubleshooter! Click "Test Connection" to begin diagnosing your connection issues.');
-        }
-        
+
         // Initialize the app
+        async function initApp() {
+            try {
+                // Test the connection to Ollama
+                const testResponse = await sendMessageToOllama("Hello, Ollama! This is a test message.");
+                console.log("Connection test successful:", testResponse);
+            } catch (error) {
+                console.error("Connection test failed:", error);
+                addMessage('ai', "Sorry, I couldn't connect to the Ollama server. Please check that the Ollama server is running and accessible at " + OLLAMA_URL);
+            }
+        }
+
+        // Start the app
         initApp();
     </script>
 </body>
